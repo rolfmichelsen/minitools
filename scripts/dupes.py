@@ -119,7 +119,11 @@ def getArguments():
     Get command line arguments.
     """
     description = "Find duplicate files"
-    epilog = None
+    epilog = """
+    This script uses file content to determine that two files are duplicates.  It calculates a hash of
+    each candidate file and looks for equal hash values.  Other file attributes, such as name or
+    timestamps, are not considered.
+    """
     argParser = ArgumentParser(description=description, epilog=epilog, fromfile_prefix_chars="@")
     argParser.add_argument("path", action="store", nargs="+", help="path to include in scan")
     argParser.add_argument("-r", "--recurse", dest="recurse", action="store_true", help="recurse into subdirectories")
