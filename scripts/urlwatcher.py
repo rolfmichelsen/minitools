@@ -53,7 +53,7 @@ def downloadResource(url, sequence):
     }
     r = requests.get(url, headers=headers)
     filename = "{:05d}.{}".format(sequence, "dat")
-    if verbose: print("Retrieved {0} Status {1} : {2}".format(filename, r.status_code, r.reason), file=sys.stderr)
+    if verbose: print("{3:.2f}: Retrieved {0} Status {1} : {2}".format(filename, r.status_code, r.reason, time.time()), file=sys.stderr)
     if r.status_code == 200:
         f = io.open(filename, "wb")
         f.write(r.content)
