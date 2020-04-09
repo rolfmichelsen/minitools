@@ -37,10 +37,13 @@ def scheduler(url, period, count, extension):
     Manages the scheduling of all resource downloads.
     """
     sequence = 0
-    while sequence < count:
-        downloadResource(url, sequence, extension)
-        sequence = sequence + 1
-        time.sleep(period)
+    if verbose: print("Starting workers", file=sys.stderr)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        while sequence < count:
+            executor.submit(downloadResource, url, sequence, extension)
+            sequence = sequence + 1
+            time.sleep(period)
+        if verbose: print("Waiting for all workes to finish", file=sys.stderr)
 
 
 def downloadResource(url, sequence, extension):
