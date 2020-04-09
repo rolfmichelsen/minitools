@@ -32,18 +32,18 @@ from concurrent.futures import ThreadPoolExecutor
 verbose = False
 
 
-def scheduler(url, period, count):
+def scheduler(url, period, count, extension):
     """
     Manages the scheduling of all resource downloads.
     """
     sequence = 0
     while sequence < count:
-        downloadResource(url, sequence)
+        downloadResource(url, sequence, extension)
         sequence = sequence + 1
         time.sleep(period)
 
 
-def downloadResource(url, sequence):
+def downloadResource(url, sequence, extension):
     """
     Downloads a resource identified by the url and stores it to a local file.  The
     sequence number is appended to the filename.
@@ -52,7 +52,7 @@ def downloadResource(url, sequence):
         "User-Agent" : "Mozilla/5.0 (Windows NT 10.0;) Gecko/20100101 Firefox/75.0"
     }
     r = requests.get(url, headers=headers)
-    filename = "{:05d}.{}".format(sequence, "dat")
+    filename = "{:05d}.{}".format(sequence, extension)
     if verbose: print("{3:.2f}: Retrieved {0} Status {1} : {2}".format(filename, r.status_code, r.reason, time.time()), file=sys.stderr)
     if r.status_code == 200:
         f = io.open(filename, "wb")
@@ -70,6 +70,7 @@ def getArguments():
     argParser.add_argument("url", action="store", help="url to download")
     argParser.add_argument("--count", dest="count", action="store", type=int, default=1, help="number of times to download url")
     argParser.add_argument("--delay", dest="delay", action="store", type=float, default=60, help="seconds to wait between each download of url")
+    argParser.add_argument("--ext", dest="extension", action="store", default="dat", help="extension of stored files")
     argParser.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="more verbose output")
     return argParser.parse_args()
 
@@ -82,7 +83,7 @@ def main():
     if verbose:
         print("Retrieving from {}, count={}, delay={}s".format(args.url, args.count, args.delay), file=sys.stderr)
 
-    scheduler(args.url, args.delay, args.count)
+    scheduler(args.url, args.delay, args.count, args.extension)
 
 
 if __name__ == '__main__':
