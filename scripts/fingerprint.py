@@ -81,11 +81,11 @@ def processFiles(path, recurse):
 
 
 
-def processPaths(path):
+def processPaths(path, recurse):
     fingerprints = []
     if verbose: print("Processing {}".format(path), file=sys.stderr)
     for p in glob.iglob(path):
-        f = processFiles(Path(p), True)
+        f = processFiles(Path(p), recurse)
         fingerprints.extend(f)
     return fingerprints
 
@@ -104,6 +104,7 @@ def getArguments():
     """
     argParser = ArgumentParser(description=description, epilog=epilog, fromfile_prefix_chars="@")
     argParser.add_argument("path", action="store", nargs="+", help="path to include in scan")
+    argParser.add_argument("--recurse", dest="recurse", action="store_true", help="recurse into directories")
     argParser.add_argument("-v", "--verbose", dest="verbose", action="store_true", help="more verbose output")
     return argParser.parse_args()
 
@@ -115,7 +116,7 @@ def main():
 
     fingerprints = []
     for path in args.path:
-        fingerprints.extend(processPaths(path))
+        fingerprints.extend(processPaths(path, args.recurse))
     print(outputReportJson(fingerprints))
 
 
