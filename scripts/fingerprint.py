@@ -14,8 +14,13 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import glob
+import hashlib
+import io
+import json
 import sys
 from argparse import ArgumentParser
+from pathlib import Path
 
 verbose = False
 
@@ -25,20 +30,70 @@ class Fingerprint:
     File fingerprint.
     """
 
-    filename = None
-    digest = None
+    Filename = None
+    Digest = None
 
     def __init__(self, filename):
-        self.filename = filename
+        self.Filename = filename
+        self.Digest = self.__createDigest(filename)
+
 
     def Pack(self):
         """
         Returns a dictionary representing the file fingerprint.
         """
         return {
-            "filename": self.filename,
-            "digest": self.digest
+            "filename": str(self.Filename),
+            "digest": str(self.Digest)
         }
+
+
+    def __createDigest(self, path):
+        """
+        Return the digest for the given file.
+        """
+        f = open(path, "rb", buffering=0)
+        data = f.readall()
+        digest = hashlib.md5()
+        digest.update(data)
+        return digest.digest()
+
+
+def processFiles(path, recurse):
+    """
+    Scans all files under the specified path, represented by a Path object.  
+    Returns a list of Fingerprint objects.
+    """
+    try:
+        files = []
+        if recurse and path.is_dir():
+            for p in path.iterdir():
+                files.extend(processFiles(p, recurse))
+        elif path.is_file():
+            files.append(Fingerprint(path))
+        else:
+            print("Ignoring special file {}".format(path), file=sys.stderr)
+        return files
+    except PermissionError:
+        print("Access denied {}".format(path), file=sys.stderr)
+    return []
+
+
+
+def processPaths(path):
+    fingerprints = []
+    if verbose: print("Processing {}".format(path), file=sys.stderr)
+    for p in glob.iglob(path):
+        f = processFiles(Path(p), True)
+        fingerprints.extend(f)
+    return fingerprints
+
+
+def outputReportJson(fingerprints):
+    report = []
+    for fingerprint in fingerprints:
+        report.append(fingerprint.Pack())
+    return json.dumps(report, sort_keys=True, indent=4)
 
 
 def getArguments():
@@ -56,6 +111,11 @@ def main():
     global verbose
     args = getArguments()
     verbose = args.verbose
+
+    fingerprints = []
+    for path in args.path:
+        fingerprints.extend(processPaths(path))
+    print(outputReportJson(fingerprints))
 
 
 if __name__ == '__main__':
