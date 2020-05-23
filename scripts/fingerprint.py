@@ -42,9 +42,10 @@ class Fingerprint:
         """
         Returns a dictionary representing the file fingerprint.
         """
+        hexdigest = "".join(format(x, "02x") for x in self.Digest)
         return {
             "filename": str(self.Filename),
-            "digest": str(self.Digest)
+            "digest": hexdigest
         }
 
 
